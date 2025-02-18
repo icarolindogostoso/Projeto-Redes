@@ -3,8 +3,10 @@ from Sistema import Sistema
 
 class Cliente:
     def __init__ (self, ip_servidor: str, porta_servidor: int):
+        self.ip_servidor = ip_servidor
+        self.porta_servidor = porta_servidor
         self.tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.destino(ip_servidor, porta_servidor)
+        self.destino = (ip_servidor, porta_servidor)
 
     def conectar(self):
         self.tcp.connect(self.destino)
