@@ -28,32 +28,17 @@ class Cliente:
         #temperatura = Sistema.temperatura_cpu()
         temperatura = 0
 
-        return qtd_cpu, memoria, disco, temperatura
+        return f"cpu: {qtd_cpu}, mem: {memoria}, disk: {disco}, temp: {temperatura}"
     
     def enviar_mensagem(self):
-        qtd_cpu, memoria, disco, temperatura = self.coletar_dados_sistema()
+        mensagem = self.coletar_dados_sistema()
 
-        dados = {
-            "cpu": qtd_cpu,
-            "mem": memoria,
-            "disk": disco,
-            "temp": temperatura
-        }
+        iv, enc_msg = self.encrypt(mensagem)
+        msg_env = str((iv, enc_msg))
+        self.tcp.send(bytes(msg_env, "utf-8"))
 
-        def encriptar_e_enviar(identificador, valor):
-            mensagem = f"{identificador}: {valor}"
-        
-            iv, enc_msg = self.encrypt(mensagem)
-            
-            msg_env = str((iv, enc_msg))
-            self.tcp.send(bytes(msg_env, "utf-8"))
-            
-            print(f"Enviando: {mensagem}")
-            print(f"Criptografada: {msg_env}")
-
-        for identificador, valor in dados.items():
-            encriptar_e_enviar(identificador, valor)
-            print("")
+        print(f"Enviando: {mensagem}")
+        print(f"Criptografada: {msg_env}\n")
 
     def executar(self):
         while True:
