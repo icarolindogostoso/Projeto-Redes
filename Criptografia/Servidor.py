@@ -1,6 +1,7 @@
 import socket
 from threading import Thread
 from Crypto.Cipher import AES
+from Crypto.Util.Padding import unpad
 
 class Servidor:
     def __init__ (self, ip: str, porta: int) -> None:
@@ -12,7 +13,9 @@ class Servidor:
     def decrypt(self, iv, enc_text):
         key = b'0361231230000000'
         cipher = AES.new(key, AES.MODE_CBC, iv=iv)
-        return cipher.decrypt(enc_text).decode("UTF-8")
+        decrypted_padded_message = cipher.decrypt(enc_text)
+        decrypted_message = unpad(decrypted_padded_message, AES.block_size)
+        return decrypted_message.decode("UTF-8")
 
     def client (self, conexao, docliente):
         """Lidar com a conexão de cada cliente"""
