@@ -1,52 +1,91 @@
-import socket, time
+import socket
+import time
 from Sistema import Sistema
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad
 
 class Cliente:
-    def __init__ (self, ip_servidor: str, porta_servidor: int):
-        self.ip_servidor = ip_servidor
-        self.porta_servidor = porta_servidor
-        self.tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.destino = (ip_servidor, porta_servidor)
+    @staticmethod
+    def encrypt(message):
+        """Encripta uma mensagem"""
+        key = b'0361231230000000' # Chave que vai ser usada para criptografar e descriptografar
+        cipher = AES.new(key, AES.MODE_CBC) # Cria um novo objeto de criptografia, com a chave, o modo de operacao (CBC)
+        b = message.encode("UTF-8") # Mensagem a ser criptografada
+        b_padded = pad(b, AES.block_size) # Mensagem criptografada com 16 bytes
+        return cipher.iv, cipher.encrypt(b_padded) # Retorna o vetor de inicalizacao e a mensagem criptografada
 
-    def conectar(self):
-        self.tcp.connect(self.destino)
-        print(f"Conectado ao servidor {self.ip_servidor}:{self.porta_servidor}")
-
-    def coletar_dados_sistema(self):
+    @staticmethod
+    def coletar_dados_sistema():
+        """Coleta os dados do sistema"""
         qtd_cpu = Sistema.quantidade_processadores()
         memoria = Sistema.memoria_ram_livre()
         disco = Sistema.espaco_disco_livre()
         #temperatura = Sistema.temperatura_cpu()
         temperatura = 0
 
-        mensagem = f"Quantidade de processadores lógicos: {qtd_cpu}\n" \
-                   f"Quantidade de memória livre: {memoria} GB\n" \
-                   f"Quantidade de espaço livre no disco: {disco} GB\n" \
-                   f"Temperatura da CPU: {temperatura}°C"
-        
-        return mensagem
-    
-    def enviar_mensagem(self):
-        mensagem = self.coletar_dados_sistema()
-        self.tcp.send(bytes(mensagem, "utf-8"))
-        print(f"Enviando: {mensagem}")
+        return f"cpu: {qtd_cpu}, mem: {memoria}, disk: {disco}, temp: {temperatura}"
 
-    def executar(self):
+    @staticmethod
+    def buscar_conexao():
+        """Busca uma conexao com um servidor"""
+        print("Esperando servidores...")
+        HOST = ''              # Endereco IP do Servidor
+        PORT = 5005            # Porta que o Servidor esta
+        udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
+        orig = (HOST, PORT)
+        udp.bind(orig)
         while True:
-            self.enviar_mensagem()
-            time.sleep(15)
+            msg, cliente = udp.recvfrom(1024)
+            tupla = eval(msg.decode("utf-8")) # A mensagem recebida vem como uma tupla com ip e porta
 
-    def fechar_conexao(self):
-        self.tcp.close()
+            return cliente[0], int(tupla[1]) # Retorna o ip e a porta
+
+    @staticmethod
+    def setar_conexao(ip, porta):
+        """Seta uma conexao com um servidor"""
+        tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # IPv4 e TCP
+        destino = (ip, porta) # Ip e porta do servidor
+        return tcp, destino
+
+    @staticmethod
+    def conectar(tcp, destino):
+        """Conecta ao servidor"""
+        tcp.connect(destino)
+        print(f"Conectado ao servidor {destino[0]}:{destino[1]}")
+
+    @staticmethod
+    def enviar_mensagem(tcp):
+        """Envia uma mensagem ao servidor"""
+        mensagem = Cliente.coletar_dados_sistema()
+
+        iv, enc_msg = Cliente.encrypt(mensagem) # Processo de criptografia
+        msg_env = str((iv, enc_msg))
+        tcp.send(bytes(msg_env, "utf-8"))
+
+        print(f"Enviando: {mensagem}")
+        print(f"Criptografada: {msg_env}\n")
+
+    @staticmethod
+    def executar(tcp):
+        """Executa o programa"""
+        while True:
+            Cliente.enviar_mensagem(tcp)
+            time.sleep(5)
+
+    @staticmethod
+    def fechar_conexao(tcp):
+        """Fecha a conexao"""
+        tcp.close()
         print("Conexão fechada.")
 
 def main():
-    cliente = Cliente('10.25.1.81', 8000)
-    cliente.conectar()
+    ip, porta = Cliente.buscar_conexao()
+    tcp, destino = Cliente.setar_conexao(ip, porta)
+    Cliente.conectar(tcp, destino)
     try:
-        cliente.executar()
+        Cliente.executar(tcp)
     except KeyboardInterrupt:
-        cliente.fechar_conexao()
+        Cliente.fechar_conexao(tcp)
 
 if __name__ == "__main__":
     main()
