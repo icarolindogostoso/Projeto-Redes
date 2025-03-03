@@ -89,3 +89,11 @@ class View:
             if descriptografado.id_criptografado == id:
                 return descriptografado
         return None
+    
+    @staticmethod
+    def buscar_descriptografado_id_cliente (id_cliente):
+        descriptografados = []
+        for descriptografado in Descriptografados.listar():
+            if descriptografado.id_cliente == id_cliente:
+                descriptografados.append(descriptografado)
+        return descriptografados
