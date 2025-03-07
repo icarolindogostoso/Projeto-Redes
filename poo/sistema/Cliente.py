@@ -20,8 +20,8 @@ class Cliente:
         qtd_cpu = Sistema.quantidade_processadores()
         memoria = Sistema.memoria_ram_livre()
         disco = Sistema.espaco_disco_livre()
-        #temperatura = Sistema.temperatura_cpu()
-        temperatura = 0
+        temperatura = Sistema.temperatura_cpu()
+        # temperatura = 0
 
         return f"cpu: {qtd_cpu}, mem: {memoria}, disk: {disco}, temp: {temperatura}"
 

@@ -22,15 +22,15 @@ class Sistema:
     def temperatura_cpu ():
         """Temperatura da CPU em graus Celsius (não está funcionando ainda)"""
         try:
-            temperaturas = psutil.sensors_temperatures()
-            if "coretemp" in temperaturas:
-                cpu_temps = temperaturas["coretemp"]
-                celsius = [(temp.current - 273.15) for temp in cpu_temps]
-                return celsius
-            else:
-                return []
+            import wmi
+
+            w = wmi.WMI(namespace="root\\wmi")
+            temperatures = w.MSAcpi_ThermalZoneTemperature()
+            if temperatures:
+                return f"{(temperatures[0].CurrentTemperature / 10.0) - 273.15:.2f}"
         except Exception as e:
-            pass
+            print(e)
+            return 0
         
         
 # sistema = Sistema()

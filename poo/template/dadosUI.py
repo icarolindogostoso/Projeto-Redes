@@ -3,7 +3,6 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from poo.view.View import View
-import time
 
 class dadosUI:
 
@@ -12,12 +11,19 @@ class dadosUI:
 
     @classmethod
     def main(cls):
+        st.empty()
         if cls.__page == 'dados':
-            st.subheader("Dados")   
+            dados, detalhe = st.columns((6,1))
+            with dados:
+                st.subheader("Dados")
+            with detalhe:
+                if st.button('Atualizar', key='voltar'):
+                    st.rerun()
+
             with st.container(border=True):
                 categorias = ['CPU', 'MEMORIA', 'DISCO', 'TEMPERATURA']
                 dados = View.listar_descriptografados()
-                if dados != None:
+                if len(dados) > 0:
                     cpu = mem = disk = temp = 0
                     for d in dados:
                         cpu = cpu + d.cpu
@@ -50,15 +56,18 @@ class dadosUI:
                             st.rerun()
 
                 else:
-                    st.error("Sem dados cadastrados")
+                    st.warning("Sem dados cadastrados")
 
         elif cls.__page == 'detalhes':
-            dados, detalhe = st.columns((7,1))
+            dados, detalhe, detalhe2 = st.columns((5,1,1))
             with dados:
                 st.subheader("Dados")
             with detalhe:
                 if st.button('Voltar', key='voltar'):
                     cls.__page = 'dados'
+                    st.rerun()
+            with detalhe2:
+                if st.button('Atualizar', key='atualizar'):
                     st.rerun()
 
             for cliente in View.listar_clientes():
@@ -67,7 +76,7 @@ class dadosUI:
 
                     categorias = ['CPU', 'MEMORIA', 'DISCO', 'TEMPERATURA']
                     dados = View.buscar_descriptografado_id_cliente(cliente.id)
-                    if dados != None:
+                    if len(dados) > 0:
                         cpu = mem = disk = temp = 0
                         for d in dados:
                             cpu = cpu + d.cpu
@@ -94,9 +103,6 @@ class dadosUI:
 
                     else:
                         st.error("Sem dados cadastrados")
-
-        time.sleep(5)
-        st.rerun()
 
         # categorias = ['A', 'B', 'C', 'D', 'E']
         # valores = np.random.randint(1, 10, size=5)

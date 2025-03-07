@@ -1,11 +1,15 @@
 import streamlit as st
 from poo.view.View import View
-import time
 
 class clientesUI:
     @staticmethod
     def main():
-        st.subheader("Clientes")
+        dados, detalhe = st.columns((6,1))
+        with dados:
+            st.subheader("Clientes")
+        with detalhe:
+            if st.button('Atualizar', key='voltar'):
+                st.rerun()
         
         with st.container(border=True):
             clientes = View.listar_clientes()
@@ -14,6 +18,3 @@ class clientesUI:
             else:
                 for cliente in clientes:
                     st.write(f"IP: {cliente.ip}")
-            
-            time.sleep(5)
-            st.rerun()

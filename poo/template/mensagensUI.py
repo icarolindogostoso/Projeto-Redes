@@ -1,6 +1,5 @@
 import streamlit as st
 from poo.view.View import View
-import time
 
 class mensagensUI:
 
@@ -10,7 +9,13 @@ class mensagensUI:
     @classmethod
     def main(cls):
         if cls.__page == 'criptografados':
-            st.subheader("Mensagens")
+            dados, detalhe = st.columns((6,1))
+            with dados:
+                st.subheader("Mensagens")
+            with detalhe:
+                if st.button('Atualizar', key='voltar'):
+                    st.rerun()
+
             with st.container(border=True):
                 cript = View.listar_criptografados()
                 if cript == None or len(cript) == 0:
@@ -27,8 +32,6 @@ class mensagensUI:
                                     cls.__last_cript = c
                                     cls.__page = 'detalhes'
                                     st.rerun()
-                time.sleep(5)
-                st.rerun()
 
         elif cls.__page == 'detalhes':
             with st.container(border=True):
